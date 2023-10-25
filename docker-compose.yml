@@ -1,0 +1,7 @@
+version: "3.2"
+services:
+  agile-smartlife:
+    build:
+      context: '.'
+      network: host
+    restart: unless-stopped
