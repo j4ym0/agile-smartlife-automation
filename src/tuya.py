@@ -34,7 +34,8 @@ class tuya():
             self.access_token, self.refresh_token, self.token_expires_in = self.db.access_token_get(self.email, self.password)
             # convert expiry datetime into seconds 
             current_time = datetime.now()
-            self.token_expires_in = (self.token_expires_in - current_time).total_seconds()
+            if type(self.token_expires_in) is datetime:
+                self.token_expires_in = (self.token_expires_in - current_time).total_seconds()
 
         # if a token has been set return
         if not self.access_token is None:
@@ -67,6 +68,9 @@ class tuya():
                 self.refresh_token = auth_data.get("refresh_token")
                 self.token_expires_in = auth_data.get("expires_in")
             else:
+                if auth_data.get('errorMsg') == "Get accesstoken failed. Invalid parms.":
+                    print(f"Please check your tuya Email and Password")
+                    raise SystemExit
                 print(f"Got message '{auth_data.get('errorMsg')}'")
                 print(f"Sleeping for 60 seconds", flush=True)
                 time.sleep(60)
