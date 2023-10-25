@@ -13,6 +13,9 @@ if config["tuya"]["password"] == "" and not os.environ.get("PASSWORD") == "":
 db = database.Database(config["database_type"], config)
 db = db.connect()
 
+if config["tuya"]["email"] =='' or config["tuya"]["password"] == '':
+    print("Please supply a Email and Password in the config.py or as environment variables.")
+    sys.exit()
 # connect to tuya and get the access tokens
 tuya = tuya.tuya(config["tuya"]["email"], config["tuya"]["password"], config["tuya"]["country"], db)
 
