@@ -1,5 +1,5 @@
 config = {
-    "database_type": "mysql",
+    "database_type": "none",
     "sqlite": {
         "database": "sqlite.db"
     },
