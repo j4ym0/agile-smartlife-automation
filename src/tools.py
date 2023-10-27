@@ -22,6 +22,11 @@ def fields(cursor):
 
     return results
 
+def _print(*args, **kwargs):
+    if not 'flush' in kwargs:
+        kwargs["flush"] = True
+    print(" ".join(map(str,args)), **kwargs)
+
 def print_roundtrip(response, *args, **kwargs):
     # usage add to any request
     # , hooks={'response': tools.print_roundtrip}
