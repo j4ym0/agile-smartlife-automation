@@ -2,7 +2,7 @@ import time, json, os
 import sqlite3
 from datetime import datetime, timedelta
 import mysql.connector
-from mysql.connector import Error
+from mysql.connector import errors
 
 class Database:
     def __init__(self, db_type, config):
@@ -55,13 +55,31 @@ class Database:
                     database=self.config["mysql"]["database"],
                     port=self.config["mysql"]["port"]
                 )
-            except Error as e:
+            except errors as e:
                 print(f"Error: {e}")
                 self.connection = None
         else:
             print("Invalid database type specified in the config.")
         
         return self
+
+    def check_connection(self):
+        try:
+            if not self.connection.is_connected():
+                print("Reconnecting to MYSQL...", flush=True)
+                self.reconnect()
+        except errors.OperationalError as e:
+            self.reconnect()
+
+    def reconnect(self):
+        while True:
+            try:
+                self.connection.reconnect(attempts=1, delay=2)  # Adjust the delay as needed
+                print("Reconnected to the database.", flush=True)
+                break  # Break out of the loop if reconnection is successful
+            except errors.OperationalError as e:
+                print(f"Reconnection error: {e}", flush=True)
+                time.sleep(5)  # Adjust the sleep time as needed
 
     # this has no return of results
     def execute(self, query, data=None):
@@ -72,6 +90,7 @@ class Database:
             query = query.replace('%s', '?')
             cursor = self.connection.cursor()
         else:
+            self.check_connection()
             cursor = self.connection.cursor(buffered=True)
 
         try:
@@ -83,7 +102,7 @@ class Database:
 
             return True
         except Error as e:
-            print(f"Error: {e}")
+            print(f"Error: {e}", flush=True)
             return False
     # this will return the results
     def query(self, query, data=None):
@@ -94,6 +113,9 @@ class Database:
             query = query.replace('%s', '?')
             cursor = self.connection.cursor()
         else:
+            if not self.connection.is_connected():
+                print("Reconnecting to MYSQL...", flush=True)
+                self.reconnect()
             cursor = self.connection.cursor(buffered=True)
 
         try:
@@ -104,7 +126,7 @@ class Database:
             self.connection.commit()
             return cursor.fetchall()
         except Error as e:
-            print(f"Error: {e}")
+            print(f"Error: {e}", flush=True)
             return None
 
     def close(self):
@@ -161,5 +183,3 @@ class Database:
         _query = "UPDATE tuya_devices SET dev_data = %s WHERE id = %s AND uid = (SELECT ID FROM tuya_accounts WHERE access_token = %s)"
 
         self.execute(_query, data)
-
-
