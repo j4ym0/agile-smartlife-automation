@@ -240,10 +240,12 @@ class tuya():
             return
             self.db.device_update_data(dev_id, self.device_list[dev_id]["data"], self.access_token)
 
-    def deviceSetState(self, dev_id, state):
-        # Send the command and check if it succeeded and update the cache
-        if self.deviceAdjust(dev_id, "turnOnOff", "value", state):
-            self.device_list[dev_id]["data"]["state"] = bool(state)
+    def deviceSetState(self, dev_id, state, force=False):
+        # Check the state of the device first
+        if not self.device_list[dev_id]["data"]["state"] == bool(state) or force:
+            # Send the command and check if it succeeded and update the cache
+            if self.deviceAdjust(dev_id, "turnOnOff", "value", state):
+                self.device_list[dev_id]["data"]["state"] = bool(state)
 
         # Save the device data that we modified
         if not self.db is None:
